@@ -16,7 +16,7 @@ paths = {
     "sample": os.path.join(data_path, "NER-de-sample.tsv"),
 }
 perl_script_path = os.path.join(eval_path, "nereval.perl")
-predictions_path = os.path.join(eval_path, "eval-sample-d.tsv")
+predictions_path = os.path.join(eval_path, "predictions.tsv")
 
 LABELS = {
     "PER": "PER",
@@ -60,8 +60,21 @@ for ent in doc.ents:
     print(ent.text, ent.label_)
 # TODO: test using test dataset
 
-print("Writing the predictions into file...")
-# TODO: write a TSV file (required for eval script)
+print("Writing the predictions into TSV file...")
+
+
+
+with open(predictions_path, "w", encoding="utf-8") as output_file:
+    for token in doc:
+        pred_label = "O"  # Default label
+        for ent in doc.ents:
+            if token.idx >= ent.start_char and token.idx < ent.end_char:
+                pred_label = LABELS.get(ent.label_, ent.label_)  # temporary normalization. we only need this while using the spacy model. once we replace the pre-trained model with our own, this normalization can be deleted
+                break
+
+        output_file.write(f"{token.i + 1}\t{token.text}\t{pred_label}\tO\tO\tO\n")
+
+print(f"Predictions written to {predictions_path}")
 
 print("Evaluating the model performance...")
 
@@ -72,5 +85,5 @@ with open(predictions_path, "rb") as file:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-
+print("<=== EVAL ===>")
 print(eval.stdout.decode("utf-8"))
