@@ -4,15 +4,19 @@ from spacy.training import Example
 import spacy
 import pandas as pd
 import os
+import subprocess # for running eval script
 
 base_path = os.path.join(os.path.dirname(__file__), "..")
 data_path = os.path.join(base_path, "data")
 model_path = os.path.join(base_path, "model")
+eval_path = os.path.join(base_path, "eval")
 paths = {
     "train": os.path.join(data_path, "NER-de-train.tsv"),
     "dev": os.path.join(data_path, "NER-de-dev.tsv"),
     "sample": os.path.join(data_path, "NER-de-sample.tsv"),
 }
+perl_script_path = os.path.join(eval_path, "nereval.perl")
+predictions_path = os.path.join(eval_path, "eval-sample-d.tsv")
 
 LABELS = {
     "PER": "PER",
@@ -55,3 +59,18 @@ doc = nlp("Die Deutsche Flugsicherung (DFS) beschloss ein Flugverbot für alle i
 for ent in doc.ents:
     print(ent.text, ent.label_)
 # TODO: test using test dataset
+
+print("Writing the predictions into file...")
+# TODO: write a TSV file (required for eval script)
+
+print("Evaluating the model performance...")
+
+with open(predictions_path, "rb") as file:
+    eval = subprocess.run(
+        ["perl", perl_script_path],
+        input=file.read(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+print(eval.stdout.decode("utf-8"))
