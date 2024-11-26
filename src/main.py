@@ -1,9 +1,11 @@
 import spacy
 from spacy.training import Example
+from spacy.util import minibatch
 import pandas as pd
 import os
 import subprocess  # for running eval script
 from tqdm import tqdm, trange
+from random import shuffle
 
 paths = {
     "data": os.path.join(os.path.dirname(__file__), "..", "data"),
@@ -29,7 +31,7 @@ LABELS = {
 print("\n<=== TRAIN ===>")
 print("Loading the model…")
 nlp = spacy.load("de_core_news_sm")
-# nlp.from_disk(paths["model"])
+nlp.from_disk(paths["model"])
 ner = nlp.get_pipe("ner")
 
 
@@ -44,29 +46,27 @@ def load_for_spacy(dataset: str) -> list[Example]:
         skip_blank_lines=False
     )
 
+    # TODO: ?:part|deriv)?
     # replace the labels with the ones used in the model
-    for label, replacement in LABELS.items():  # TODO: ?:part|deriv)?
-        df["label"] = df["label"]\
-            .astype(str).replace(replacement, label)
+    df["label"] = df["label"].replace(LABELS)
 
-    # Add the labels to the NER pipeline
-    for label in df["label"].unique():
-        ner.add_label(label)
-
-    sentences = []
+    examples = []
     current_sentence, entities, current_entity, offset = [], [], None, 0
-    for i, row in tqdm(df.iterrows(), f"Loading {dataset} sentences", total=len(df), unit="rows"):
-        if pd.isna(row["index"]):  # End of a sentence
+    for _, row in tqdm(df.iterrows(), f"Loading {dataset} sentences", total=len(df), unit="rows"):
+        if pd.isna(row["index"]):
             if current_sentence:
-                sentences.append((current_sentence, {"entities": entities}))
+                examples.append(Example.from_dict(
+                    nlp.make_doc(" ".join(current_sentence)), {"entities": entities}))
             current_sentence = []
             entities = []
             current_entity = None
             offset = 0
             continue
-
         token = str(row["token"])  # Ensure token is a string
-        label = row["label"]
+        label = str(row["label"])  # Ensure label is a string
+
+        ner.add_label(label)
+
         current_sentence.append(token)
 
         if label.startswith("B-"):
@@ -80,31 +80,33 @@ def load_for_spacy(dataset: str) -> list[Example]:
                 entities.append(current_entity)
                 current_entity = None
 
-        offset += len(token) + 1  # Include space
-
-    if current_sentence:
-        sentences.append((current_sentence, {"entities": entities}))
-
-    examples = []
-    for text, annotations in tqdm(sentences, desc=f"Converting to Examples", unit="sentences"):
-        examples.append(Example.from_dict(
-            nlp.make_doc(" ".join(text)),
-            annotations))
+        offset += len(token) + 1  # Include space after token
 
     return examples
 
 
 train_data = load_for_spacy("train")
 dev_data = load_for_spacy("dev")
-optimizer = nlp.initialize()
-print(f"Epoch\t|\tF1 Score\t|\tPrecision\t|\tRecall")
-for epoch in trange(10, desc="Training", unit="epoch"):
-    for example in tqdm(train_data, desc=f"Epoch {epoch + 1}", unit="sentence"):
-        nlp.update([example], sgd=optimizer)
 
-scorer = nlp.evaluate(dev_data)
-print(
-    f"{epoch + 1} | F1-score: {scorer['ents_f']:.4f} | Precision: {scorer['ents_p']:.4f}| Recall: {scorer['ents_r']:.4f}")
+
+def train(batch_size: int, optimizer: str):
+    for epoch in trange(10, desc="Training", unit="epoch"):
+        losses = {}
+        shuffle(train_data)  # Shuffle data each epoch
+        batches = minibatch(train_data, size=batch_size)  # Train in batches
+
+        for batch in tqdm(batches, total=len(train_data) // batch_size, unit="batch", leave=False):
+            nlp.update(batch, sgd=optimizer, losses=losses)
+
+        scorer = nlp.evaluate(dev_data)
+        print(
+            f"Epoch {epoch + 1} | F1-score: {scorer['ents_f']:.4f} | "
+            f"Precision: {scorer['ents_p']:.4f} | Recall: {
+                scorer['ents_r']:.4f}"
+        )
+
+
+train(1024, nlp.initialize())
 
 print("Saving the model…")
 nlp.to_disk(paths["model"])
