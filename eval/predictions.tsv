@@ -1,8 +1,8 @@
 1	Die	O	O	O	O
-2	Deutsche	ORG	O	O	O
-3	Flugsicherung	ORG	O	O	O
+2	Deutsche	O	O	O	O
+3	Flugsicherung	LOC	O	O	O
 4	(	O	O	O	O
-5	DFS	ORG	O	O	O
+5	DFS	O	O	O	O
 6	)	O	O	O	O
 7	beschloss	O	O	O	O
 8	ein	O	O	O	O
@@ -15,7 +15,7 @@
 15	Ausnahme	O	O	O	O
 16	der	O	O	O	O
 17	beiden	O	O	O	O
-18	Berliner	OTH	O	O	O
+18	Berliner	O	O	O	O
 19	Flughäfen	O	O	O	O
 20	bis	O	O	O	O
 21	2.00	O	O	O	O

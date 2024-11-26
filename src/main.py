@@ -3,6 +3,7 @@ from spacy.training import Example
 import pandas as pd
 import os
 import subprocess  # for running eval script
+from tqdm import tqdm, trange
 
 paths = {
     "data": os.path.join(os.path.dirname(__file__), "..", "data"),
@@ -32,47 +33,29 @@ nlp.from_disk(paths["model"])
 ner = nlp.get_pipe("ner")
 
 
-print("Loading the data…")
-train_df = pd.read_csv(
-    datasets["train"],
-    sep="\t",
-    names=["index", "token", "label", "_eval"],
-    comment="#",
-    quoting=3,
-    na_filter=False
-)
-dev_df = pd.read_csv(
-    datasets["dev"],
-    sep="\t",
-    names=["index", "token", "label", "_eval"],
-    comment="#",
-    quoting=3,
-    na_filter=False
-)
+def load_for_spacy(dataset: str) -> list[Example]:
+    df = pd.read_csv(
+        datasets[dataset],
+        sep="\t",
+        names=["index", "token", "label", "_eval"],
+        comment="#",
+        quoting=3,
+        na_filter=True,
+        skip_blank_lines=False
+    )
 
-for label, replacement in LABELS.items():  # TODO: ?:part|deriv)?
-    train_df["label"] = train_df["label"]\
-        .astype(str).replace(replacement, label)
-    dev_df["label"] = dev_df["label"]\
-        .astype(str).replace(replacement, label)
+    # replace the labels with the ones used in the model
+    for label, replacement in LABELS.items():  # TODO: ?:part|deriv)?
+        df["label"] = df["label"]\
+            .astype(str).replace(replacement, label)
 
-for label in train_df["label"].unique():
-    ner.add_label(label)
+    # Add the labels to the NER pipeline
+    for label in df["label"].unique():
+        ner.add_label(label)
 
-print("Converting to spacy format…")
-
-
-def convert_to_spacy_format(df):
     sentences = []
-    current_sentence = []
-    entities = []
-    current_entity = None
-    offset = 0
-
-    # Fill missing or misinterpreted tokens with a default value (e.g., "UNKNOWN")
-    df["token"] = df["token"].fillna("UNKNOWN").astype(str)
-
-    for i, row in df.iterrows():
+    current_sentence, entities, current_entity, offset = [], [], None, 0
+    for i, row in tqdm(df.iterrows(), f"Creating {dataset} sentences", total=len(df), unit="rows"):
         if pd.isna(row["index"]):  # End of a sentence
             if current_sentence:
                 sentences.append((current_sentence, {"entities": entities}))
@@ -102,27 +85,23 @@ def convert_to_spacy_format(df):
     if current_sentence:
         sentences.append((current_sentence, {"entities": entities}))
 
-    return sentences
+    examples = []
+    for text, annotations in tqdm(sentences, desc=f"Creating {dataset} examples", unit="sentences"):
+        examples.append(Example.from_dict(
+            nlp.make_doc(" ".join(text)),
+            annotations))
+
+    return examples
 
 
-train_data = convert_to_spacy_format(train_df)
-dev_data = convert_to_spacy_format(dev_df)
+train_data = load_for_spacy("sample")
+dev_data = load_for_spacy("dev")
 
-# Convert sentences and entities into spaCy training Examples
-examples = []
-for text, annotations in train_data:
-    doc = nlp.make_doc(" ".join(text))
-    example = Example.from_dict(doc, annotations)
-    examples.append(example)
-
-print(f"Training on {len(examples)} examples...")
-
-# Start the training process
+# TODO: use dev data performance instead of loss
 optimizer = nlp.initialize()
-for i in range(20):  # Adjust the number of iterations as needed
-    losses = {}
-    nlp.update(examples, sgd=optimizer, losses=losses)
-    print(f"Iteration {i + 1}, Losses: {losses}")
+for epoch in trange(10, desc=f"Training", unit="epoch"):
+    for batch in tqdm(train_data, desc=f"Progress", unit="batch"):
+        nlp.update([batch], sgd=optimizer)
 
 print("Model training complete!")
 ...
