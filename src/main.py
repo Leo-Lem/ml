@@ -29,7 +29,7 @@ LABELS = {
 print("\n<=== TRAIN ===>")
 print("Loading the model…")
 nlp = spacy.load("de_core_news_sm")
-nlp.from_disk(paths["model"])
+# nlp.from_disk(paths["model"])
 ner = nlp.get_pipe("ner")
 
 
@@ -55,7 +55,7 @@ def load_for_spacy(dataset: str) -> list[Example]:
 
     sentences = []
     current_sentence, entities, current_entity, offset = [], [], None, 0
-    for i, row in tqdm(df.iterrows(), f"Creating {dataset} sentences", total=len(df), unit="rows"):
+    for i, row in tqdm(df.iterrows(), f"Loading {dataset} sentences", total=len(df), unit="rows"):
         if pd.isna(row["index"]):  # End of a sentence
             if current_sentence:
                 sentences.append((current_sentence, {"entities": entities}))
@@ -86,7 +86,7 @@ def load_for_spacy(dataset: str) -> list[Example]:
         sentences.append((current_sentence, {"entities": entities}))
 
     examples = []
-    for text, annotations in tqdm(sentences, desc=f"Creating {dataset} examples", unit="sentences"):
+    for text, annotations in tqdm(sentences, desc=f"Converting to Examples", unit="sentences"):
         examples.append(Example.from_dict(
             nlp.make_doc(" ".join(text)),
             annotations))
@@ -94,17 +94,15 @@ def load_for_spacy(dataset: str) -> list[Example]:
     return examples
 
 
-train_data = load_for_spacy("sample")
+train_data = load_for_spacy("train")
 dev_data = load_for_spacy("dev")
-
-# TODO: use dev data performance instead of loss
 optimizer = nlp.initialize()
-for epoch in trange(10, desc=f"Training", unit="epoch"):
-    for batch in tqdm(train_data, desc=f"Progress", unit="batch"):
-        nlp.update([batch], sgd=optimizer)
+print(f"Epoch\t|\tF1 Score\t|\tPrecision\t|\tRecall")
+for epoch in trange(10, desc="Training", unit="epoch"):
+    nlp.update(train_data, sgd=optimizer)
 
-print("Model training complete!")
-...
+    scorer = nlp.evaluate(dev_data)
+    print(f"\r\33[2K{epoch + 1}\t|\t{scorer['ents_f']:.4f}\t\t|\t{scorer['ents_p']:.4f}\t\t|\t{scorer['ents_r']:.4f}")
 
 print("Saving the model…")
 nlp.to_disk(paths["model"])
