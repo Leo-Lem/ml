@@ -99,10 +99,12 @@ dev_data = load_for_spacy("dev")
 optimizer = nlp.initialize()
 print(f"Epoch\t|\tF1 Score\t|\tPrecision\t|\tRecall")
 for epoch in trange(10, desc="Training", unit="epoch"):
-    nlp.update(train_data, sgd=optimizer)
+    for example in tqdm(train_data, desc=f"Epoch {epoch + 1}", unit="sentence"):
+        nlp.update([example], sgd=optimizer)
 
-    scorer = nlp.evaluate(dev_data)
-    print(f"\r\33[2K{epoch + 1}\t|\t{scorer['ents_f']:.4f}\t\t|\t{scorer['ents_p']:.4f}\t\t|\t{scorer['ents_r']:.4f}")
+scorer = nlp.evaluate(dev_data)
+print(
+    f"{epoch + 1} | F1-score: {scorer['ents_f']:.4f} | Precision: {scorer['ents_p']:.4f}| Recall: {scorer['ents_r']:.4f}")
 
 print("Saving the model…")
 nlp.to_disk(paths["model"])
