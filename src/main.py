@@ -50,6 +50,9 @@ def load_for_spacy(dataset: str) -> list[Example]:
     # replace the labels with the ones used in the model
     df["label"] = df["label"].replace(LABELS)
 
+    for label in df["label"].unique():
+        ner.add_label(label)
+
     examples = []
     current_sentence, entities, current_entity, offset = [], [], None, 0
     for _, row in tqdm(df.iterrows(), f"Loading {dataset} sentences", total=len(df), unit="rows"):
@@ -64,8 +67,6 @@ def load_for_spacy(dataset: str) -> list[Example]:
             continue
         token = str(row["token"])  # Ensure token is a string
         label = str(row["label"])  # Ensure label is a string
-
-        ner.add_label(label)
 
         current_sentence.append(token)
 
@@ -100,13 +101,11 @@ def train(batch_size: int, optimizer: str):
 
         scorer = nlp.evaluate(dev_data)
         print(
-            f"Epoch {epoch + 1} | F1-score: {scorer['ents_f']:.4f} | "
-            f"Precision: {scorer['ents_p']:.4f} | Recall: {
-                scorer['ents_r']:.4f}"
-        )
+            f"Epoch {epoch + 1} | F1-score: {scorer['ents_f']:.4f} | Precision: {scorer['ents_p']:.4f} | Recall: {scorer['ents_r']:.4f}")
 
 
-train(1024, nlp.initialize())
+train(1024,
+      nlp.initialize(lambda: train_data, config={"training": {"dropout": 0.2}}))
 
 print("Saving the model…")
 nlp.to_disk(paths["model"])
