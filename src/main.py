@@ -51,7 +51,7 @@ def load_for_spacy(dataset: str) -> list[Example]:
     df["label"] = df["label"].replace(LABELS)
 
     for label in df["label"].unique():
-        ner.add_label(label)
+        ner.add_label(str(label))
 
     examples = []
     current_sentence, entities, current_entity, offset = [], [], None, 0
@@ -86,7 +86,7 @@ def load_for_spacy(dataset: str) -> list[Example]:
     return examples
 
 
-train_data = load_for_spacy("train")
+train_data = load_for_spacy("sample")
 dev_data = load_for_spacy("dev")
 
 
@@ -104,8 +104,7 @@ def train(batch_size: int, optimizer: str):
             f"Epoch {epoch + 1} | F1-score: {scorer['ents_f']:.4f} | Precision: {scorer['ents_p']:.4f} | Recall: {scorer['ents_r']:.4f}")
 
 
-train(1024,
-      nlp.initialize(lambda: train_data, config={"training": {"dropout": 0.2}}))
+train(1024, nlp.initialize())
 
 print("Saving the model…")
 nlp.to_disk(paths["model"])
