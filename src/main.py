@@ -86,7 +86,7 @@ def load_for_spacy(dataset: str) -> list[Example]:
     return examples
 
 
-train_data = load_for_spacy("sample")
+train_data = load_for_spacy("train")
 dev_data = load_for_spacy("dev")
 
 
