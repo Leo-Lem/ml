@@ -7,6 +7,9 @@ import subprocess  # for running eval script
 from tqdm import tqdm, trange
 from random import shuffle
 
+#training parameters
+no_epochs = 7
+
 paths = {
     "data": os.path.join(os.path.dirname(__file__), "..", "data"),
     "model": os.path.join(os.path.dirname(__file__), "..", "model"),
@@ -20,19 +23,64 @@ datasets = {
 perl_script_path = os.path.join(paths["eval"], "nereval.perl")
 predictions_path = os.path.join(paths["eval"], "predictions.tsv")
 
-LABELS = {
-    "PER": "PER",
-    "LOC": "LOC",
-    "ORG": "ORG",
-    "MISC": "OTH",
+# Label normalization map for GermaNER -> SpaCy (general)
+label_mapping_spacy = {
+    "B-PER": "B-PERSON",
+    "I-PER": "I-PERSON",
+    "B-LOC": "B-LOC",
+    "I-LOC": "I-LOC",
+    "B-ORG": "B-ORG",
+    "I-ORG": "I-ORG",
+    "B-OTH": "B-MISC",
+    "I-OTH": "I-MISC",
+
 }
 
+# Label normalization map for GermaNER -> SpaCy (including partial tag normalization)
+label_mapping_spacy_full = {
+    "B-PER": "B-PERSON",
+    "I-PER": "I-PERSON",
+    "B-PERpart": "B-PERSON",
+    "I-PERpart": "I-PERSON",
+    "B-PERderiv": "B-PERSON",
+    "I-PERderiv": "I-PERSON",
+
+    "B-LOC": "B-LOC",
+    "I-LOC": "I-LOC",
+    "B-LOCpart": "B-LOC",
+    "I-LOCpart": "I-LOC",
+    "B-LOCderiv": "B-LOC",
+    "I-LOCderiv": "I-LOC",
+
+    "B-ORG": "B-ORG",
+    "I-ORG": "I-ORG",
+    "B-ORGpart": "B-ORG",
+    "I-ORGpart": "I-ORG",
+    "B-ORGderiv": "B-ORG",
+    "I-ORGderiv": "I-ORG",
+
+    "B-OTH": "B-MISC",
+    "I-OTH": "I-MISC",
+    "B-OTHpart": "B-MISC",
+    "I-OTHpart": "I-MISC",
+    "B-OTHderiv": "B-MISC",
+    "I-OTHderiv": "I-MISC",
+
+    "O": "O",  # Outside tokens
+}
+
+# Choose label map (parameter)
+LABELS = label_mapping_spacy_full  # pick either label_mapping_spacy OR label_mapping_spacy_full
 
 print("\n<=== TRAIN ===>")
 print("Loading the model…")
 nlp = spacy.load("de_core_news_sm")
 nlp.from_disk(paths["model"])
-ner = nlp.get_pipe("ner")
+
+if "ner" not in nlp.pipe_names:
+    ner = nlp.add_pipe("ner", last=True) # initialize
+else:
+    ner = nlp.get_pipe("ner")
 
 
 def load_for_spacy(dataset: str) -> list[Example]:
@@ -46,12 +94,21 @@ def load_for_spacy(dataset: str) -> list[Example]:
         skip_blank_lines=False
     )
 
-    # TODO: ?:part|deriv)?
+    # debugging
+    #df = df.head(8000)
+    print("\n Data set details:")
+    print(df.head())
+    print("Size: ",len(df))
+    print("List of all Labels:\n", str(df["label"].unique()))
+    # debugging end
+
+
     # replace the labels with the ones used in the model
     df["label"] = df["label"].replace(LABELS)
 
     for label in df["label"].unique():
         ner.add_label(str(label))
+        print("Added label: ", str(label)) # for debug
 
     examples = []
     current_sentence, entities, current_entity, offset = [], [], None, 0
@@ -91,7 +148,7 @@ dev_data = load_for_spacy("dev")
 
 
 def train(batch_size: int, optimizer: str):
-    for epoch in trange(10, desc="Training", unit="epoch"):
+    for epoch in trange(no_epochs, desc="Training", unit="epoch"):
         losses = {}
         shuffle(train_data)  # Shuffle data each epoch
         batches = minibatch(train_data, size=batch_size)  # Train in batches
@@ -120,8 +177,8 @@ with open(predictions_path, "w", encoding="utf-8") as output_file:
         pred_label = "O"  # Default label
         for ent in doc.ents:
             if token.idx >= ent.start_char and token.idx < ent.end_char:
-                # temporary normalization. we only need this while using the spacy model. once we replace the pre-trained model with our own, this normalization can be deleted
-                pred_label = LABELS.get(ent.label_, ent.label_)
+                ent_prefix = "B-" if token.idx == ent.start_char else "I-" #eval needs "BIO-tags"
+                pred_label = ent_prefix + LABELS.get(ent.label_, ent.label_)
                 break
 
         output_file.write(
