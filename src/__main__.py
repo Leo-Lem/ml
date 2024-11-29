@@ -10,9 +10,9 @@ out_path = os.path.join(os.path.dirname(__file__), "..", ".out")
 
 nlp = load_model(out_path)
 data = {
-    "train": preprocess("train", nlp),
-    "dev": preprocess("dev", nlp),
-    "test": preprocess("sample", nlp)
+    "train": preprocess("train", nlp, out_path),
+    "dev": preprocess("dev", nlp, out_path),
+    "test": preprocess("sample", nlp, out_path)
 }
 
 train(nlp, data["train"], data["dev"])
