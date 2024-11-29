@@ -3,17 +3,17 @@ from os import path
 
 parser = ArgumentParser()
 parser.add_argument("--blank", action="store_true",
-                    help="Blank model instead of pretrained")
+                    help="use blank model instead of pretrained")
 parser.add_argument("--include_part_deriv", action="store_true",
-                    help="Include partial derivatives in the model (only for pretrained)")
+                    help="include partial derivatives in the model (only for pretrained)")
 parser.add_argument("--epochs", type=int, default=10,
-                    help="Number of epochs to train the model")
+                    help="number of epochs to train the model")
 parser.add_argument("--stop_early_after", type=int, default=2,
-                    help="Number of epochs without improvement to stop training")
+                    help="number of epochs without improvement to stop training")
 parser.add_argument("--batch_size", type=int, default=1024,
-                    help="Batch size for training")
+                    help="batch size for training")
 parser.add_argument("--debug", action="store_true",
-                    help="Run in debug mode")
+                    help="run in debug mode")
 args = parser.parse_args()
 
 BLANK = args.blank
