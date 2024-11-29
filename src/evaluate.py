@@ -8,6 +8,13 @@ from __param__ import OUT
 
 
 def evaluate(nlp: Language, data: list[Example]):
+    """
+    Evaluate the NER model.
+
+    :param nlp: The NLP object.
+    :param data: The evaluation data.
+    """
+
     predictions = os.path.join(OUT, "predictions.tsv")
     os.makedirs(OUT, exist_ok=True)
 

@@ -1,10 +1,10 @@
+import os
+import pandas as pd
+import pickle
 from spacy.language import Language
 from spacy.training import Example
-import pandas as pd
 from tqdm import tqdm
-import os
 from typing import Literal
-import pickle
 
 from __param__ import INCLUDE_PART_DERIV, DEBUG, OUT
 
