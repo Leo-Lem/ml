@@ -6,9 +6,8 @@ from tqdm import tqdm
 
 from __param__ import BLANK, INCLUDE_PART_DERIV
 
-model_name = f"model-{
-    "blank" if BLANK else "pretrained"}{
-    "-part-deriv" if INCLUDE_PART_DERIV else ""}"
+model_name = \
+    f"model-{"blank" if BLANK else "pretrained"}{"-part-deriv" if INCLUDE_PART_DERIV else ""}"
 
 
 def load_model(out_path: str) -> Language:
