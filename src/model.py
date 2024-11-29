@@ -5,7 +5,7 @@ from spacy.cli import download
 from spacy import load
 from tqdm import tqdm
 
-from __param__ import BLANK, INCLUDE_PART_DERIV, OUT
+from __param__ import BLANK, INCLUDE_PART_DERIV, OUT, DEBUG
 
 model_name = \
     f"model-{'blank' if BLANK else 'pretrained'}{'-part-deriv' if INCLUDE_PART_DERIV else ''}"
@@ -40,6 +40,7 @@ def save_model(nlp: Language):
 
     :param nlp: The model to save.
     """
-    tqdm.write(f"\tSaving model to {model_path}…")
+    if DEBUG:
+        print(f"\tSaving model to {model_path}…")
     os.makedirs(model_path, exist_ok=True)
     nlp.to_disk(model_path)
