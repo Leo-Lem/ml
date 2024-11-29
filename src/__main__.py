@@ -6,7 +6,7 @@ from evaluate import evaluate
 nlp = load_model()
 
 data = {
-    "train": preprocess("sample", nlp),
+    "train": preprocess("train", nlp),
     "dev": preprocess("dev", nlp),
     "test": preprocess("sample", nlp)
 }
