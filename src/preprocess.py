@@ -6,7 +6,7 @@ import os
 from typing import Literal
 import pickle
 
-from __param__ import INCLUDE_PART_DERIV, DEBUG
+from __param__ import INCLUDE_PART_DERIV, DEBUG, OUT
 
 data_path = os.path.join(os.path.dirname(__file__), "..", "res")
 
@@ -53,14 +53,14 @@ label_map = {
 }
 
 
-def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language, out_path: str) -> list[Example]:
+def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language) -> list[Example]:
     """
     Load the dataset and preprocess it for the model.
 
     :param dataset: The dataset to load
     :return: A tuple containing the examples and the labels
     """
-    cache_path = os.path.join(out_path, f"{dataset}.pkl")
+    cache_path = os.path.join(OUT, f"{dataset}.pkl")
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as cache_file:
             tqdm.write(f"Loading cached {dataset} examples from {cache_path}…")
@@ -119,7 +119,7 @@ def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language, out_pa
 
         offset += len(token) + 1  # Include space after token
 
-    os.makedirs(out_path, exist_ok=True)
+    os.makedirs(OUT, exist_ok=True)
     with open(cache_path, "wb") as cache_file:
         pickle.dump(examples, cache_file)
         if DEBUG:

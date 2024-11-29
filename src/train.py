@@ -5,6 +5,7 @@ from spacy.language import Language
 from spacy.training import Example
 import pandas as pd
 
+from model import save_model
 from __param__ import EPOCHS, BATCH_SIZE
 
 
@@ -32,4 +33,6 @@ def train(nlp: Language, data: list[Example], eval_data: list[Example]) -> pd.Da
         if epoch > 2 and all(scores[epoch - i]["ents_f"] <= scores[epoch - i - 1]["ents_f"] for i in range(3)):
             tqdm.write("\tModel has not improved for 3 epochs, stopping...")
             break
+
+        save_model(nlp)
     return scores

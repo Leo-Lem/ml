@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from os import path
 
 parser = ArgumentParser()
 parser.add_argument('--blank', action='store_true',
@@ -18,3 +19,5 @@ INCLUDE_PART_DERIV = args.include_part_deriv if not BLANK else False
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
 DEBUG = args.debug
+
+OUT = path.join(path.dirname(__file__), "..", ".out")

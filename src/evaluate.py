@@ -4,10 +4,12 @@ from spacy.language import Language
 from spacy.training import Example
 import subprocess
 
+from __param__ import OUT
 
-def evaluate(nlp: Language, data: list[Example], out_path: str):
-    predictions = os.path.join(out_path, "predictions.tsv")
-    os.makedirs(out_path, exist_ok=True)
+
+def evaluate(nlp: Language, data: list[Example]):
+    predictions = os.path.join(OUT, "predictions.tsv")
+    os.makedirs(OUT, exist_ok=True)
 
     with open(predictions, "w", encoding="utf-8") as f:
         for example in tqdm(data, desc="Predicting…"):

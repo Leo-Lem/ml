@@ -1,16 +1,17 @@
 from spacy.language import Language
 from spacy.lang.de import German
-import de_core_news_sm
+from spacy.cli import download
+from spacy import load
 import os
 from tqdm import tqdm
 
-from __param__ import BLANK, INCLUDE_PART_DERIV
+from __param__ import BLANK, INCLUDE_PART_DERIV, OUT
 
 model_name = \
     f"model-{'blank' if BLANK else 'pretrained'}{'-part-deriv' if INCLUDE_PART_DERIV else ''}"
 
 
-def load_model(out_path: str) -> Language:
+def load_model() -> Language:
     """
     Load the model from the disk if it exists, otherwise create a new model.
 
@@ -22,15 +23,16 @@ def load_model(out_path: str) -> Language:
         nlp = German()
         nlp.add_pipe("ner")
     else:
-        nlp = de_core_news_sm.load()
+        download("de_core_news_sm")
+        nlp = load("de_core_news_sm")
 
-    if os.path.exists(os.path.join(out_path, model_name)):
-        nlp.from_disk(os.path.join(out_path, model_name))
+    if os.path.exists(os.path.join(OUT, model_name)):
+        nlp.from_disk(os.path.join(OUT, model_name))
 
     return nlp
 
 
-def save_model(nlp: Language, out_path: str):
+def save_model(nlp: Language):
     """
     Save the model to the disk.
 
@@ -38,5 +40,5 @@ def save_model(nlp: Language, out_path: str):
     :param out_path: The path to the output directory.
     """
     tqdm.write(f"Saving {model_name}…")
-    os.makedirs(out_path, exist_ok=True)
-    nlp.to_disk(os.path.join(out_path, model_name))
+    os.makedirs(OUT, exist_ok=True)
+    nlp.to_disk(os.path.join(OUT, model_name))
