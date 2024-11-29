@@ -7,7 +7,7 @@ parser.add_argument('--include_part_deriv', action='store_true',
                     help='Include partial derivatives in the model (only for pretrained)')
 parser.add_argument('--epochs', type=int, default=100,
                     help='Number of epochs to train the model')
-parser.add_argument('--batch-size', type=int, default=1024,
+parser.add_argument('--batch_size', type=int, default=1024,
                     help='Batch size for training')
 parser.add_argument('--debug', action='store_true',
                     help='Run in debug mode')
