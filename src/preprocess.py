@@ -8,7 +8,7 @@ from typing import Literal
 
 from __param__ import INCLUDE_PART_DERIV, DEBUG, OUT
 
-data_path = os.path.join(os.path.dirname(__file__), "..", "res")
+data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "res")
 
 label_map = {
     "B-PER": "B-PER",

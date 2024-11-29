@@ -20,4 +20,4 @@ EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
 DEBUG = args.debug
 
-OUT = path.join(path.dirname(__file__), "..", ".out")
+OUT = path.join(path.dirname(path.dirname(__file__)), ".out")
