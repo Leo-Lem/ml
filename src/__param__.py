@@ -2,6 +2,8 @@ from argparse import ArgumentParser
 from os import path
 
 parser = ArgumentParser()
+parser.add_argument("--clear", action="store_true",
+                    help="clear the cache and output directories")
 parser.add_argument("--blank", action="store_true",
                     help="use blank model instead of pretrained")
 parser.add_argument("--part_deriv", action="store_true",
@@ -30,3 +32,9 @@ SAMPLE = args.sample
 TRAIN = not args.skip_training
 
 OUT = path.join(path.dirname(path.dirname(__file__)), ".out")
+
+if args.clear:
+    from shutil import rmtree
+    rmtree(OUT, ignore_errors=True)
+    if DEBUG:
+        print("Cleared cache and output directories.")

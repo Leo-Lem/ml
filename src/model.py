@@ -8,7 +8,7 @@ from tqdm import tqdm
 from .__param__ import BLANK, INCLUDE_PART_DERIV, OUT, DEBUG
 
 model_name = \
-    f"model-{'blank' if BLANK else 'pretrained'}{'-part-deriv' if INCLUDE_PART_DERIV else ''}"
+    f"model-{'blank' if BLANK else 'pretrained'}{'-partderiv' if INCLUDE_PART_DERIV else ''}"
 model_path = os.path.join(OUT, model_name)
 
 
