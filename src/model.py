@@ -5,11 +5,11 @@ from spacy.cli import download
 from spacy import load
 from tqdm import tqdm
 
-from .__param__ import BLANK, INCLUDE_PART_DERIV, OUT, DEBUG
+from .__param__ import BLANK, INCLUDE_PART_DERIV, MODEL_PATH, DEBUG
 
 model_name = \
     f"model-{'blank' if BLANK else 'pretrained'}{'-partderiv' if INCLUDE_PART_DERIV else ''}"
-model_path = os.path.join(OUT, model_name)
+model_path = os.path.join(MODEL_PATH, model_name)
 
 
 def load_model() -> Language:
