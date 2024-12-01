@@ -22,8 +22,11 @@ def load_model() -> Language:
         nlp = German()
         nlp.add_pipe("ner")
     else:
-        download("de_core_news_sm")
-        nlp = load("de_core_news_sm")
+        try:
+            nlp = load("de_core_news_sm")
+        except OSError:
+            download("de_core_news_sm")
+            nlp = load("de_core_news_sm")
 
     if os.path.exists(model_path):
         tqdm.write(f"Loading model from {model_path}…")

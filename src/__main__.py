@@ -3,14 +3,17 @@ from preprocess import preprocess
 from train import train
 from evaluate import evaluate
 
+from __param__ import SAMPLE, TRAIN
+
 nlp = load_model()
 
 data = {
-    "train": preprocess("train", nlp),
+    "train": preprocess("sample" if SAMPLE else "train", nlp),
     "dev": preprocess("dev", nlp),
-    "test": preprocess("sample", nlp)
+    "test": preprocess("test", nlp)
 }
 
-train(nlp, data["train"], data["dev"])
+if TRAIN:
+    train(nlp, data["train"], data["dev"])
 
 evaluate(nlp, data["test"])

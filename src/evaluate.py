@@ -5,6 +5,7 @@ from spacy.training import Example
 import subprocess
 
 from __param__ import OUT
+from preprocess import unprocess
 
 
 def evaluate(nlp: Language, data: list[Example]):
@@ -19,7 +20,7 @@ def evaluate(nlp: Language, data: list[Example]):
     os.makedirs(OUT, exist_ok=True)
 
     with open(predictions, "w", encoding="utf-8") as f:
-        for example in tqdm(data, desc="Predicting…"):
+        for example in tqdm(data, desc="Predicting…", unit="sentence"):
             gold_doc = example.reference
             predicted_doc = nlp(example.text)
 
@@ -30,6 +31,7 @@ def evaluate(nlp: Language, data: list[Example]):
                         ent_prefix = "B-" if token.idx == ent.start_char else "I-"
                         gold_label = ent_prefix + ent.label_
                         break
+                gold_label = unprocess(gold_label)
 
                 predicted_label = "O"
                 for ent in predicted_doc.ents:
@@ -37,11 +39,12 @@ def evaluate(nlp: Language, data: list[Example]):
                         ent_prefix = "B-" if token.idx == ent.start_char else "I-"
                         predicted_label = ent_prefix + ent.label_
                         break
+                predicted_label = unprocess(predicted_label)
 
                 f.write(
                     f"{token.i + 1}\t{token.text}" +
                     f"\t{gold_label}\t{gold_label}" +
-                    f"\t{predicted_label}\t{predicted_label}\n"
+                    f"\t{predicted_label}\tO\n"
                 )
             f.write("\n")  # Add a blank line between sentences
 

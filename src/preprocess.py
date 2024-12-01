@@ -12,6 +12,36 @@ data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "res")
 
 label_map = {
     "B-PER": "B-PER",
+    "B-PERpart": "B-PERpart",
+    "B-PERderiv": "B-PERderiv",
+    "I-PER": "I-PER",
+    "I-PERpart": "I-PERpart",
+    "I-PERderiv": "I-PERderiv",
+
+    "B-LOC": "B-LOC",
+    "B-LOCpart": "B-LOCpart",
+    "B-LOCderiv": "B-LOCderiv",
+    "I-LOC": "I-LOC",
+    "I-LOCpart": "I-LOCpart",
+    "I-LOCderiv": "I-LOCderiv",
+
+    "B-ORG": "B-ORG",
+    "B-ORGpart": "B-ORGpart",
+    "B-ORGderiv": "B-ORGderiv",
+    "I-ORG": "I-ORG",
+    "I-ORGpart": "I-ORGpart",
+    "I-ORGderiv": "I-ORGderiv",
+
+    "B-OTH": "B-MISC",
+    "B-OTHpart": "B-MISCpart",
+    "B-OTHderiv": "B-MISCderiv",
+    "I-OTH": "I-MISC",
+    "I-OTHpart": "I-MISCpart",
+    "I-OTHderiv": "I-MISCderiv",
+
+    "O": "O"
+} if INCLUDE_PART_DERIV else {
+    "B-PER": "B-PER",
     "I-PER": "I-PER",
     "B-PERpart": "B-PER",
     "I-PERpart": "I-PER",
@@ -39,16 +69,6 @@ label_map = {
     "B-OTHderiv": "B-MISC",
     "I-OTHderiv": "I-MISC",
 
-    "O": "O"  # Outside tokens
-} if INCLUDE_PART_DERIV else {
-    "B-PER": "B-PER",
-    "I-PER": "I-PER",
-    "B-LOC": "B-LOC",
-    "I-LOC": "I-LOC",
-    "B-ORG": "B-ORG",
-    "I-ORG": "I-ORG",
-    "B-OTH": "B-MISC",
-    "I-OTH": "I-MISC",
     "O": "O"
 }
 
@@ -60,7 +80,8 @@ def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language) -> lis
     :param dataset: The dataset to load
     :return: A tuple containing the examples and the labels
     """
-    cache_path = os.path.join(OUT, f"{dataset}.pkl")
+    cache_path = os.path.join(OUT,
+                              f"{dataset}{'-partderiv' if INCLUDE_PART_DERIV else ""}.pkl")
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as cache_file:
             tqdm.write(f"Loading cached {dataset} examples from {cache_path}…")
@@ -126,3 +147,15 @@ def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language) -> lis
             print(f"Cached {len(examples)} examples to {cache_path}")
 
     return examples
+
+
+def unprocess(label: str) -> str:
+    """
+    Unprocess the label.
+
+    :param label: The label to unprocess.
+    :return: The unprocessed label.
+    """
+    assert label in label_map.values(), f"Unknown label: {label}"
+    reversed_label_map = {v: k for k, v in label_map.items()}
+    return reversed_label_map[label]

@@ -6,7 +6,7 @@ from spacy.training import Example
 from tqdm import tqdm, trange
 
 from model import save_model
-from __param__ import EPOCHS, BATCH_SIZE, STOP_EARLY_AFTER
+from __param__ import EPOCHS, BATCH_SIZE, STOP_EARLY_AFTER, DEBUG
 
 
 def train(nlp: Language, data: list[Example], eval_data: list[Example]) -> pd.DataFrame:
@@ -17,7 +17,15 @@ def train(nlp: Language, data: list[Example], eval_data: list[Example]) -> pd.Da
     :param data: The training data.
     :param eval_data: The evaluation data.
     """
-    optimizer = nlp.begin_training()
+    try:
+        optimizer = nlp.resume_training()
+        nlp.update(data[0:1], sgd=optimizer)  # check if training is possible
+        if DEBUG:
+            print("Resuming training…")
+    except KeyError:
+        optimizer = nlp.begin_training()
+        if DEBUG:
+            print("Starting training…")
 
     scores = pd.DataFrame(columns=["ents_f", "ents_p", "ents_r"])
     for epoch in trange(EPOCHS, desc="Training", unit="epoch"):
