@@ -1,24 +1,25 @@
 from argparse import ArgumentParser
 from os import path
 
-parser = ArgumentParser()
-parser.add_argument("--approach", type=str,
-                    help="approach to use for training the model (blank, pretrained, pretrained_part_deriv)")
-parser.add_argument("--path", type=str, default="",
+parser = ArgumentParser(description="Train and evaluate an NER model.")
+parser.add_argument("approach", type=str,
+                    help="blank, pretrained, pretrained_partderiv")
+
+parser.add_argument("-p", "--path", type=str, default="",
                     help="path to load/store the trained model")
 
 parser.add_argument("--epochs", type=int, default=10,
                     help="number of epochs to train the model")
-parser.add_argument("--stop_early_after", type=int, default=2,
+parser.add_argument("--stop", type=int, default=2,
                     help="number of epochs without improvement to stop training")
-parser.add_argument("--batch_size", type=int, default=1024,
+parser.add_argument("--batch", type=int, default=1024,
                     help="batch size for training")
 
-parser.add_argument("--debug", action="store_true",
+parser.add_argument("-d", "--debug", action="store_true",
                     help="run in debug mode")
 parser.add_argument("--sample", action="store_true",
                     help="use sample data instead of full data")
-parser.add_argument("--skip_training", action="store_true",
+parser.add_argument("--eval", action="store_true",
                     help="skip training the model")
 parser.add_argument("--clear", action="store_true",
                     help="clear the cache and output directories")
@@ -31,12 +32,12 @@ BLANK = args.approach == "blank"
 INCLUDE_PART_DERIV = args.approach == "pretrained_part_deriv"
 
 EPOCHS = args.epochs
-STOP_EARLY_AFTER = args.stop_early_after
-BATCH_SIZE = args.batch_size
+STOP_EARLY_AFTER = args.stop
+BATCH_SIZE = args.batch
 
 DEBUG = args.debug
 SAMPLE = args.sample
-TRAIN = not args.skip_training
+TRAIN = not args.eval
 
 if args.clear:
     from shutil import rmtree
