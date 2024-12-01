@@ -5,8 +5,8 @@ from spacy.language import Language
 from spacy.training import Example
 from tqdm import tqdm, trange
 
-from model import save_model
-from __param__ import EPOCHS, BATCH_SIZE, STOP_EARLY_AFTER, DEBUG
+from .model import save_model
+from .__param__ import EPOCHS, BATCH_SIZE, STOP_EARLY_AFTER, DEBUG
 
 
 def train(nlp: Language, data: list[Example], eval_data: list[Example]) -> pd.DataFrame:

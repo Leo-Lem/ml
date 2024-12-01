@@ -4,8 +4,8 @@ from spacy.language import Language
 from spacy.training import Example
 import subprocess
 
-from __param__ import OUT
-from preprocess import unprocess
+from .__param__ import OUT
+from .preprocess import unprocess
 
 
 def evaluate(nlp: Language, data: list[Example]):

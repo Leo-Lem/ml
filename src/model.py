@@ -5,7 +5,7 @@ from spacy.cli import download
 from spacy import load
 from tqdm import tqdm
 
-from __param__ import BLANK, INCLUDE_PART_DERIV, OUT, DEBUG
+from .__param__ import BLANK, INCLUDE_PART_DERIV, OUT, DEBUG
 
 model_name = \
     f"model-{'blank' if BLANK else 'pretrained'}{'-part-deriv' if INCLUDE_PART_DERIV else ''}"

@@ -6,7 +6,7 @@ from spacy.training import Example
 from tqdm import tqdm
 from typing import Literal
 
-from __param__ import INCLUDE_PART_DERIV, DEBUG, OUT
+from .__param__ import INCLUDE_PART_DERIV, DEBUG, OUT
 
 data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "res")
 
@@ -81,7 +81,7 @@ def preprocess(dataset: Literal["train", "dev", "sample"], nlp: Language) -> lis
     :return: A tuple containing the examples and the labels
     """
     cache_path = os.path.join(OUT,
-                              f"{dataset}{'-partderiv' if INCLUDE_PART_DERIV else ""}.pkl")
+                              f"{dataset}{'-partderiv' if INCLUDE_PART_DERIV else ''}.pkl")
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as cache_file:
             tqdm.write(f"Loading cached {dataset} examples from {cache_path}…")

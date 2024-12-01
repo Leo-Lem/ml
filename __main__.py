@@ -1,9 +1,4 @@
-from model import load_model
-from preprocess import preprocess
-from train import train
-from evaluate import evaluate
-
-from __param__ import SAMPLE, TRAIN
+from src import load_model, preprocess, train, evaluate, SAMPLE, TRAIN
 
 nlp = load_model()
 
